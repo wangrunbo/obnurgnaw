@@ -24,4 +24,4 @@ class World(threading.Thread):
 
 
 if __name__ == '__main__':
-    walland = World()
+    print('hello')
