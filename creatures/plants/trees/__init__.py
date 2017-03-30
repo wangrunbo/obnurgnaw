@@ -7,17 +7,16 @@ class Tree(Plant):
     """
     height = 0
     radius = 0
-    leaves = Leaf(amount=0, color='green')
-    flowers = Flower(amount=0, color='red')
+    # leaves = Leaf(amount=0, color='green')
+    # flowers = Flower(amount=0, color='red')
 
-    def __init__(self, age, height, radius, leaves, flowers):
+    def __init__(self, age, height, radius):
         Plant.__init__(self, age)
         self.age = age
         self.height = height
         self.radius = radius
-        self.leaves = leaves
-        self.flowers = flowers
-
+        # self.leaves = leaves
+        # self.flowers = flowers
 
     def __grow(self):
         """
@@ -29,4 +28,4 @@ class Tree(Plant):
         self.height += 2
         self.radius += 1
 
-        self.leaves.summation += 10
+        # self.leaves.summation += 10
