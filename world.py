@@ -1,18 +1,31 @@
 import threading
-import re
 import gc
-from functions import *
-from exceptions import *
+from consts import *
+from functions import run
+from exceptions.CommendError import CommendError, AttributeNotFoundError, ObjectNotExistError
 
 
-class World(threading.Thread):
-
-    time = 0  # 世界时间
+class Sig(threading.Thread):
+    """元"""
     name = None
 
     def __init__(self, name):
         threading.Thread.__init__(self)
         self.name = name
+
+    def run(self):
+        run(self.__run)
+
+    def __run(self):
+        pass
+
+
+class World(Sig):
+
+    time = 0  # 世界时间
+
+    def __init__(self, name):
+        Sig.__init__(self, name)
 
     def run(self):
         run(self.__run)
@@ -30,46 +43,72 @@ class World(threading.Thread):
 
 class Window(threading.Thread):
 
-    mode = 'Window'
+    __mode = 'Window'
+    __output = None
+    __world = None
 
     def __init__(self):
         threading.Thread.__init__(self)
 
+        self.__world = self.__obj('World')
+
     def run(self):
         while True:
-            commend = input(self.mode + '>>> ')
+            commend = input(self.__mode + '>>> ')
 
             units = commend.split(':')
 
             try:
                 if len(units) == 1:
                     # 查询模式
-                    for part in iter(units[0].rsplit('@')):
+                    units = units[0].split('@')
+                    units.reverse()
+                    count = len(units)
+                    units = iter(units)
 
-                        check = getattr(check, part)
+                    if count == 1:
+                        check = self.__world
+                    else:
+                        check = self.__obj(next(units))
 
-                    msg = None
+                    for attr in units:
+                        if hasattr(check, attr):
+                            check = getattr(check, attr)
+                        else:
+                            raise AttributeNotFoundError('错误！' + check.__class__.__name__ + '中不存在' + attr + '！')
+
+                    self.__output = check
+
                 elif len(units) == 2:
                     # 干预模式
-                    msg = '设置成功！！'
+                    self.__output = '设置成功！！'
                 else:
                     raise CommendError('拒绝，指令未识别！！')
             except CommendError as e:
-                msg = e.message
+                self.__output = e
 
-            print(msg)
+            self.__out()
 
+    def __out(self):
+        print(self.__output)
 
+    def __obj(self, name):
+        """
+        获取目标
+        :param str name: 目标name
+        :return: obj
+        :raise: ObjectNotExistError
+        """
+        for obj in gc.get_objects():
+            if hasattr(obj, 'name') and type(obj.name) == str and obj.name.lower() == name.lower():
+                return obj
 
-            # keys = re.match(r'What ((is)|(are)) the (.+)( and (.+))*( of (.+))?', commend, re.I)
-            # keys = re.match(r'What ((is)|(are)) the (.+)', commend, re.I)  # What is the *****
-            # keys = re.match(r'(.+) of (.+)', keys.group(4), re.I)  # ***** of *****
-            #
-            # info = keys.group(1)
-            #
-            # for obj in gc.get_objects():
-            #     if isinstance(obj, World):
-            #         print(getattr(obj, info, '拒绝，指令未识别！！'))
+        for obj in gc.get_objects():
+            if obj.__class__.__name__.upper() == name.upper():
+                return obj
+
+        raise ObjectNotExistError(name + '不存在！')
+
 
 ########################################################################################################################
 ########################################################################################################################
@@ -78,3 +117,5 @@ obnurgnaw = World(WORLD_NAME)
 
 obnurgnaw.start()
 Window().start()
+
+

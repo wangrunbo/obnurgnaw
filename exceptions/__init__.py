@@ -2,14 +2,10 @@ class Error(Exception):
     """
     基础异常
     """
-    message = None
+    message = ''
 
-    def __init__(self, message=None):
-        self.message = message
+    def __str__(self):
+        if self.args:
+            self.message = self.args[0] if len(self.args) == 1 else self.args
 
-
-class CommendError(Error):
-    """
-    输入命令异常
-    """
-    pass
+        return str(self.message)
